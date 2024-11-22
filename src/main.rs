@@ -7,7 +7,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let port: u16 = env::var("PORT")
-        .unwrap_or_else(|_| "4000".to_string()) // Default port agar `PORT` set na ho
+        .unwrap_or_else(|_| "8080".to_string()) // Default port agar `PORT` set na ho
         .parse()
         .expect("PORT must be a valid u16 integer");
 
