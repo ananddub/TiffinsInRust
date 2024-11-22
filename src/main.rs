@@ -1,10 +1,18 @@
 use actix_web::{web, App, HttpServer};
-use backend::routes::auth::auth::{routes_auth};
+use backend::routes::auth::auth::routes_auth;
+use std::env;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init();
-    println!("Starting server at http://127.0.0.1:4000");
+
+    let port: u16 = env::var("PORT")
+        .unwrap_or_else(|_| "4000".to_string()) // Default port agar `PORT` set na ho
+        .parse()
+        .expect("PORT must be a valid u16 integer");
+
+    println!("Starting server at http://127.0.0.1:{}", port);
+
     HttpServer::new(|| {
         App::new()
             .service(
@@ -12,7 +20,7 @@ async fn main() -> std::io::Result<()> {
                     .service(routes_auth())
             )
     })
-    .bind(("127.0.0.1", 4000))?
-    .run()
-    .await
+        .bind(("127.0.0.1", port))? // Dynamic port binding
+        .run()
+        .await
 }
