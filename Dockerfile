@@ -10,4 +10,4 @@ FROM debian:bookworm-slim AS runner
 
 WORKDIR /app
 COPY --from=builder /app/target/release/backend /app/backend
-CMD ["/app/example-rust"]
+CMD ["/app/backend"]
