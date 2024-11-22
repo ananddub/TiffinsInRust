@@ -1,0 +1,14 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.9.0"
+env_logger = "0.11.5"
+futures = "0.3.31"
+log = "0.4.22"
+regex = "1.11.1"
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.133"
+tokio = "1.41.1"
