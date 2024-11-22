@@ -11,7 +11,7 @@ async fn main() -> std::io::Result<()> {
         .parse()
         .expect("PORT must be a valid u16 integer");
 
-    println!("Starting server at http://127.0.0.1:{}", port);
+    println!("Starting server at http://0.0.0.0:{}", port);
 
     HttpServer::new(|| {
         App::new()
@@ -20,7 +20,7 @@ async fn main() -> std::io::Result<()> {
                     .service(routes_auth())
             )
     })
-        .bind(("127.0.0.1", port))? // Dynamic port binding
+        .bind(("0.0.0.0", port))? // Dynamic port binding
         .run()
         .await
 }
