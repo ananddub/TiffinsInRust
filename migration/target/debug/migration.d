@@ -1,0 +1,1 @@
+/Volumes/storage/Devloper/rust/backend/migration/target/debug/migration: /Volumes/storage/Devloper/rust/backend/migration/src/lib.rs /Volumes/storage/Devloper/rust/backend/migration/src/m20220101_000001_create_table.rs /Volumes/storage/Devloper/rust/backend/migration/src/main.rs
