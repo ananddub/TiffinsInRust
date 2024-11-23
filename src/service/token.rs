@@ -6,19 +6,13 @@ pub mod token_service{
     use serde::{Deserialize, Serialize};
     use chrono::{Utc, Duration, DateTime};
     use serde::de::DeserializeOwned;
-    use serde::de::Unexpected::Str;
-    use crate::service::auth::auth::auth::Token;
 
     #[derive(Debug, Serialize, Deserialize)]
     pub struct TokenStruct{
         pub token:String,
         pub exp: DateTime<Utc>,
     }
-    pub struct TokenService{
-        refresh_token:String,
-        access_token:String
 
-    }
     pub fn access_token<T: Serialize>(token:&T ) ->TokenStruct{
         dotenv().ok();
         let secret_key = env::var("JWT_SECRETKEY").unwrap_or("".to_string());

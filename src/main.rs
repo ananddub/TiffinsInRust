@@ -1,12 +1,7 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use backend::routes::auth::auth::routes_auth;
 use std::env;
-use chrono::Utc;
 use dotenv::dotenv;
-use sea_orm::ActiveModelTrait;
-use sea_orm::ActiveValue::Set;
-use backend::connection::dbconection::db_conection::dbconection;
-use entity::users;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
