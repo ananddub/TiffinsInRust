@@ -1,6 +1,6 @@
 pub mod auth{
     use actix_web::{web};
-    use crate::service::auth::auth::auth::{forgot, login, logout, resend_otp, signup};
+    use crate::service::auth::auth::auth::{forgot, login, logout, send_otp, signup};
 
     pub fn routes_auth() ->actix_web::Scope{
         web::scope("/auth")
@@ -8,6 +8,6 @@ pub mod auth{
             .route("/signup",web::post().to(signup))
             .route("/logout",web::post().to(logout))
             .route("/forgot",web::post().to(forgot))
-            .route("/resendotp",web::post().to(resend_otp))
+            .route("/send_otp",web::post().to(send_otp))
     }
 }

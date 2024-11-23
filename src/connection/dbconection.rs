@@ -2,7 +2,7 @@ pub mod db_conection {
     use std::env;
     use dotenv::dotenv;
     use sea_orm::{Database, DatabaseConnection, DbErr};
-    pub async  fn dbconection() -> Result<DatabaseConnection,DbErr> {
+    pub async  fn db_conection() -> Result<DatabaseConnection,DbErr> {
         dotenv().ok();
         let  conn_string:String  = env::var("DATABASE_URL")
             .unwrap_or("".to_string());
@@ -11,14 +11,20 @@ pub mod db_conection {
         println!("Database connection established");
         Ok(db)
     }
-    pub async  fn redisconnection()->Result<redis::Connection,redis::RedisError>{
+    pub async  fn redis_con()->redis::Connection{
         dotenv().ok();
-        let  conn_string:String  = env::var("REDIS_URL")
+        let  redis_conn_url:String  = env::var("REDIS_URL")
             .unwrap_or(String::from(""));
-        let client = redis::Client::open(conn_string)?;
-        let  con = client.get_connection()?;
-        println!("db connection established");
-        Ok(con)
+        let client = redis::Client::open(redis_conn_url)
+            .expect("Redis connection failed to open")
+        .get_connection()
+        .expect("Redis connection failed to connect");
+            ;
+
+
+        println!("Redis connection established");
+         client
+
     }
 
 }

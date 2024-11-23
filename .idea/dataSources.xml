@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:postgresql://unkowndatabase-ananddubey-d1dd.c.aivencloud.com:20652/defaultdb</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="@oregon-redis.render.com" uuid="8b1b02cd-422d-438b-809f-a40a4e5be138">
+      <driver-ref>redis</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>jdbc.RedisDriver</jdbc-driver>
+      <jdbc-url>jdbc:redis://oregon-redis.render.com:6379/</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

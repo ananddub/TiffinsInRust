@@ -1,2 +1,3 @@
 pub mod auth;
-mod token;
+pub mod token;
+pub mod mail;

@@ -2,6 +2,7 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use backend::routes::auth::auth::routes_auth;
 use std::env;
 use dotenv::dotenv;
+use backend::service::mail::Mail::mail;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
