@@ -1,11 +1,17 @@
-use actix_web::{web, App, HttpServer};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use backend::routes::auth::auth::routes_auth;
 use std::env;
+use chrono::Utc;
+use dotenv::dotenv;
+use sea_orm::ActiveModelTrait;
+use sea_orm::ActiveValue::Set;
+use backend::connection::dbconection::db_conection::dbconection;
+use entity::users;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
     env_logger::init();
-
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string()) // Default port agar `PORT` set na ho
         .parse()
@@ -16,11 +22,17 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .service(
-                web::scope("/api")
-                    .service(routes_auth())
+                web::scope("/api").service(routes_auth())
             )
-    })
-        .bind(("0.0.0.0", port))? // Dynamic port binding
+            .route("/",web::get().to(home))
+        })
+        .bind(("0.0.0.0", port))?
+        .workers(6)
         .run()
         .await
+}
+
+
+async fn home()-> impl Responder   {
+    HttpResponse::Ok().body("Hello From Rust")
 }
