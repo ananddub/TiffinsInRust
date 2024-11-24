@@ -7,7 +7,6 @@ pub mod auth {
     use chrono::Utc;
     use dotenv::dotenv;
     use entity::users;
-    use lettre::Transport;
     use redis_macros::{FromRedisValue, ToRedisArgs};
     use sea_orm::ActiveValue::Set;
     use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
@@ -16,7 +15,7 @@ pub mod auth {
     use rand::Rng;
     use redis::{Commands, Connection};
     use validator::Validate;
-    use crate::connection::dbconection::db_conection::{db_connection, redis_con, RDB};
+    use crate::connection::dbconection::db_conection::{check_rdb_status, db_connection, redis_con, RDB};
 
     #[derive(Deserialize, Serialize, Debug, Validate)]
     pub struct SignupBody {
@@ -184,6 +183,11 @@ pub mod auth {
         }
 
         let otpstr = generate_otp();
+        let rdbbool = check_rdb_status().await;
+        if rdbbool==false{
+            println!("redis Connection Error");
+            return HttpResponse::InternalServerError().finish();
+        };
         let mut rdb_lock = RDB.lock().unwrap();
         let redis_conn=match *rdb_lock {
             Ok(ref mut conn) =>conn,
@@ -213,18 +217,17 @@ pub mod auth {
             count: session_result.count+1,
         };
 
-
-        match redis_conn.set_ex::<&String, &RediSession, u64>(&emailotp, &otpvalue,60*5){
+        let strvalue = serde_json::to_string(&otpvalue).unwrap_or(String::new());
+        match redis::cmd("SETEX").arg(emailotp).arg(60*5).arg(strvalue).query::<()>(redis_conn) {
             Ok(_)=>{},
-            Err(_)=>return HttpResponse::InternalServerError().finish(),
+            Err(e)=>return HttpResponse::InternalServerError().body(
+                format!("Could not set OTP {}",e.to_string())),
         }
-
         // Send OTP email
         match mail(&req_body.email, &otp_html(&otpstr, &req_body.email)).await {
-            Ok(_) => {}
-            Err(_) => return HttpResponse::InternalServerError().body("Failed to send OTP email"),
+            Ok(_) => HttpResponse::Ok().body("Success!"),
+            Err(e) =>  HttpResponse::InternalServerError().body(format!("Failed to send OTP email {} ",e.to_string())),
         }
 
-        HttpResponse::Ok().finish()
     }
 }

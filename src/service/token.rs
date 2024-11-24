@@ -1,6 +1,5 @@
 pub mod token_service{
     use std::env;
-    use std::time::SystemTime;
     use dotenv::dotenv;
     use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
     use serde::{Deserialize, Serialize};

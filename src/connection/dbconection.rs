@@ -8,6 +8,7 @@ pub mod db_conection {
 
     lazy_static! {
     pub static ref RDB: Mutex<Result<redis::Connection, bool>> = Mutex::new(Err(false));
+    pub static ref DB: Mutex<Result<DatabaseConnection, bool>> = Mutex::new(Err(false));
 }
     pub async  fn db_connection() -> Result<DatabaseConnection,DbErr> {
         dotenv().ok();
@@ -18,9 +19,41 @@ pub mod db_conection {
         println!("Database connection established");
         Ok(db)
     }
-
+    pub async fn check_db_status()->bool{
+        unsafe {
+            let mut db_lock =DB.lock().unwrap();
+            match *db_lock {
+                Ok(_) => {return true}
+                _=>{}
+            }
+            let rdb = match db_connection().await {
+                Ok(rdb) => rdb,
+                Err(_)=>return false
+            };
+            *db_lock = Ok(rdb);
+            println!("Redis Conected Successfully!");
+        }
+        true
+    }
+    pub async fn check_rdb_status() ->bool{
+        unsafe {
+            let mut rdb_lock = RDB.lock().unwrap();
+            match *rdb_lock {
+                Ok(ref rdb) => {return true}
+                _=>{}
+            }
+            let rdb = match redis_con().await {
+                Ok(rdb) => rdb,
+                Err(_)=>return false
+            };
+            *rdb_lock = Ok(rdb);
+            println!("Redis Conected Successfully!");
+        }
+        true
+    }
     pub async  fn redis_con()->Result<redis::Connection,RedisError>{
         dotenv().ok();
+
         let  redis_conn_url:String  = env::var("REDIS_URL")
             .unwrap_or(String::from(""));
         let client =  Client::open(redis_conn_url)?;
