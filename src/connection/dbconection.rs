@@ -3,8 +3,8 @@ pub mod db_conection {
     use std::sync::Mutex;
     use dotenv::dotenv;
     use lazy_static::lazy_static;
-    use redis::{Client, RedisError};
-    use sea_orm::{Database, DatabaseConnection, DbErr};
+    use redis::{Client, ConnectionLike, RedisError};
+    use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbErr};
 
     lazy_static! {
     pub static ref RDB: Mutex<Result<redis::Connection, bool>> = Mutex::new(Err(false));
@@ -14,24 +14,36 @@ pub mod db_conection {
         dotenv().ok();
         let  conn_string:String  = env::var("DATABASE_URL")
             .unwrap_or("".to_string());
-        println!("DATABASE_URL: {}",&conn_string[0..5]);
         let db: DatabaseConnection = Database::connect(&conn_string).await?;
-        println!("Database connection established");
         Ok(db)
+    }
+    pub async fn clone_db_conection()->Result<DatabaseConnection,bool>{
+       unsafe {
+            let mut db_lock =DB.lock().unwrap();
+            match &*db_lock {
+                Ok(e) => {
+                     Ok(e.clone())
+                }
+                _=>{
+                    Err(false)
+                }
+            }
+       }
     }
     pub async fn check_db_status()->bool{
         unsafe {
             let mut db_lock =DB.lock().unwrap();
-            match *db_lock {
-                Ok(_) => {return true}
+            match &mut *db_lock {
+                Ok(e) => {
+                    return true
+                }
                 _=>{}
-            }
+            };
             let rdb = match db_connection().await {
                 Ok(rdb) => rdb,
                 Err(_)=>return false
             };
             *db_lock = Ok(rdb);
-            println!("Redis Conected Successfully!");
         }
         true
     }
@@ -39,7 +51,11 @@ pub mod db_conection {
         unsafe {
             let mut rdb_lock = RDB.lock().unwrap();
             match *rdb_lock {
-                Ok(ref rdb) => {return true}
+                Ok(ref mut rdb) => {
+                    if redis::Connection::check_connection(rdb)==true{
+                        return true
+                    }
+                }
                 _=>{}
             }
             let rdb = match redis_con().await {
@@ -47,7 +63,6 @@ pub mod db_conection {
                 Err(_)=>return false
             };
             *rdb_lock = Ok(rdb);
-            println!("Redis Conected Successfully!");
         }
         true
     }
@@ -56,7 +71,9 @@ pub mod db_conection {
 
         let  redis_conn_url:String  = env::var("REDIS_URL")
             .unwrap_or(String::from(""));
+
         let client =  Client::open(redis_conn_url)?;
+
         client.get_connection()
     }
 

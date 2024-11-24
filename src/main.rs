@@ -1,9 +1,10 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use backend::routes::auth::auth::routes_auth;
 use std::env;
 use dotenv::dotenv;
-use backend::connection::dbconection::db_conection::{check_rdb_status, redis_con, DB, RDB};
-use backend::middleware::logmiddlware::loginmiddlware::log;
+use backend::connection::dbconection::db_conection::{check_db_status, check_rdb_status, redis_con, DB, RDB};
+use backend::middleware::db_conn_middleware::db_conn_middleware::db_con_middleware;
+use backend::middleware::logmiddlware::loginmiddlware::logmiddlware;
+use backend::routes::auth::auth::routes_auth;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -16,14 +17,16 @@ async fn main() -> std::io::Result<()> {
 
         println!("Starting server at http://0.0.0.0:{}", port);
     check_rdb_status().await;
+    check_db_status().await;
     HttpServer::new(|| {
         App::new()
             .service(
                 web::scope("/api")
                     .service(routes_auth())
-                    .wrap(actix_web::middleware::from_fn(log))
             )
             .route("/",web::get().to(home))
+            .wrap(actix_web::middleware::from_fn(logmiddlware))
+            .wrap(actix_web::middleware::from_fn(db_con_middleware))
         })
         .bind(("0.0.0.0", port))?
 

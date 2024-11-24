@@ -11,7 +11,6 @@ entity = { path = "entity" }
 migration = { path = "migration" } # depends on your needs
 env_logger = "0.11.5"
 futures = "0.3.31"
-log = "0.4.22"
 regex = "1.11.1"
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
@@ -28,11 +27,9 @@ nanoid = "0.4.0"
 uuid = { version = "1.11.0", features = ["v4"] }
 chrono = "0.4.38"
 validator = { version = "0.19", features = ["derive", "validator_derive"] }
-validator_derive = "0.19.0"
 lazy_static = "1.5.0"
 rand = "0.8.5"
 lettre = "0.10"
 thiserror = "2.0.3"
 redis = { version = "0.27.5", features = ["tls"] }
-actix-redis-client = "0.1.0"
 redis-macros = "0.4.2"
