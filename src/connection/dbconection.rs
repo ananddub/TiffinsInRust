@@ -21,8 +21,8 @@ pub mod db_conection {
     }
     pub async fn check_db_status()->bool{
         unsafe {
-            let mut rdb_lock =DB.lock().unwrap();
-            match *rdb_lock {
+            let mut db_lock =DB.lock().unwrap();
+            match *db_lock {
                 Ok(ref rdb) => {return true}
                 _=>{}
             }
@@ -30,7 +30,7 @@ pub mod db_conection {
                 Ok(rdb) => rdb,
                 Err(_)=>return false
             };
-            *rdb_lock = Ok(rdb);
+            *db_lock = Ok(rdb);
             println!("Redis Conected Successfully!");
         }
         true
