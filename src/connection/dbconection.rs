@@ -23,7 +23,7 @@ pub mod db_conection {
         unsafe {
             let mut db_lock =DB.lock().unwrap();
             match *db_lock {
-                Ok(ref rdb) => {return true}
+                Ok(_) => {return true}
                 _=>{}
             }
             let rdb = match db_connection().await {

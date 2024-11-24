@@ -4,7 +4,6 @@ use std::env;
 use dotenv::dotenv;
 use backend::connection::dbconection::db_conection::{check_rdb_status, redis_con, DB, RDB};
 use backend::middleware::logmiddlware::loginmiddlware::log;
-use actix_web::middleware::{self, Next};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

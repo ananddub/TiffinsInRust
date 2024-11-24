@@ -7,14 +7,11 @@ pub mod auth {
     use chrono::Utc;
     use dotenv::dotenv;
     use entity::users;
-    use lettre::Transport;
     use redis_macros::{FromRedisValue, ToRedisArgs};
     use sea_orm::ActiveValue::Set;
     use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
     use serde::{Deserialize, Serialize};
     use std::time::SystemTime;
-    use actix_redis_client::ActixRedisClientError::RedisError;
-    use futures::FutureExt;
     use rand::Rng;
     use redis::{Commands, Connection};
     use validator::Validate;
