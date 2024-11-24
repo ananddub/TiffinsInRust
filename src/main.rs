@@ -2,7 +2,7 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use backend::routes::auth::auth::routes_auth;
 use std::env;
 use dotenv::dotenv;
-use backend::connection::dbconection::db_conection::{redis_con, RDB};
+use backend::connection::dbconection::db_conection::{check_rdb_status, redis_con, DB, RDB};
 use backend::middleware::logmiddlware::loginmiddlware::log;
 use actix_web::middleware::{self, Next};
 
@@ -16,12 +16,7 @@ async fn main() -> std::io::Result<()> {
         .expect("PORT must be a valid u16 integer");
 
         println!("Starting server at http://0.0.0.0:{}", port);
-    unsafe {
-        let rdb = redis_con().await.unwrap_or_else(|e|{panic!("redis not conected")});
-        let mut rdb_lock = RDB.lock().unwrap();
-        *rdb_lock = Ok(rdb);
-        println!("Redis Conected Successfully!");
-    };
+    check_rdb_status().await;
     HttpServer::new(|| {
         App::new()
             .service(
