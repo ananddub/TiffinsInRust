@@ -1,5 +1,4 @@
 pub mod auth {
-    use crate::connection::dbconection::db_conection::{db_conection, redis_con};
     use crate::service::mail::Mail::{mail, otp_html};
     use crate::service::token::token_service::{access_token, refresh_token, TokenStruct};
     use actix_web::web::Json;
@@ -9,15 +8,15 @@ pub mod auth {
     use dotenv::dotenv;
     use entity::users;
     use lettre::Transport;
-    use migration::extension::sqlite::SqliteBinOper::Match;
-    use rand::Rng;
-    use redis::{Commands, FromRedisValue, ToRedisArgs};
+    use redis_macros::{FromRedisValue, ToRedisArgs};
     use sea_orm::ActiveValue::Set;
     use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
     use serde::{Deserialize, Serialize};
     use std::time::SystemTime;
-    use log::debug;
+    use rand::Rng;
+    use redis::{Commands, Connection};
     use validator::Validate;
+    use crate::connection::dbconection::db_conection::{db_connection, redis_con, RDB};
 
     #[derive(Deserialize, Serialize, Debug, Validate)]
     pub struct SignupBody {
@@ -51,7 +50,7 @@ pub mod auth {
             Ok(_) => (),
             Err(e) => return HttpResponse::BadRequest().body(e.to_string()),
         }
-        let db = match db_conection().await {
+        let db = match db_connection().await {
             Ok(db) => db,
             Err(_) => return HttpResponse::InternalServerError().finish(),
         };
@@ -88,7 +87,7 @@ pub mod auth {
             Ok(_) => (),
             Err(e) => return HttpResponse::BadRequest().body(e.to_string()),
         }
-        let db = match db_conection().await {
+        let db = match db_connection().await {
             Ok(db) => db,
             Err(_) => return HttpResponse::InternalServerError().finish(),
         };
@@ -126,7 +125,7 @@ pub mod auth {
         };
 
         println!("create user called ");
-        let db = db_conection().await.unwrap();
+        let db = db_connection().await.unwrap();
         match user_modal.insert(&db).await {
             Ok(_) => HttpResponse::Created().finish(),
             Err(_) => HttpResponse::InternalServerError().finish(),
@@ -147,13 +146,37 @@ pub mod auth {
         email: String,
     }
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(Serialize, Deserialize,FromRedisValue, ToRedisArgs, Debug)]
     pub struct RediSession {
         otp: String,
         count: u8,
     }
 
     pub async fn send_otp(req_body: Json<SendOtp>) -> impl Responder {
+        match req_body.validate() {
+            Ok(_) => (),
+            Err(e) => return HttpResponse::BadRequest().body(e.to_string()),
+        }
+        let db = match db_connection().await {
+            Ok(db) => db,
+            Err(e) => {
+                println!("db Error occured ,{}",e.to_string());
+                return HttpResponse::InternalServerError().finish()
+            },
+        };
+        match users::Entity::find().
+            filter(users::Column::Email.eq(&req_body.email))
+            .one(&db).await {
+            Ok(e) => match e {
+                Some(_) => {}
+                _ => return HttpResponse::NotFound().finish(),
+            }
+            Err(e) => {
+                println!("db Error occured ,{}",e.to_string());
+                return HttpResponse::InternalServerError().finish()
+            },
+        }
+
         fn generate_otp() -> String {
             (0..6)
                 .map(|_| rand::thread_rng().gen_range(0..10).to_string())
@@ -161,41 +184,37 @@ pub mod auth {
         }
 
         let otpstr = generate_otp();
+        let mut rdb_lock = RDB.lock().unwrap();
+        let redis_conn=match *rdb_lock {
+            Ok(ref mut conn) =>conn,
+            Err(e) => {
+                println!("redis_conn Error occured ,{}",e.to_string());
+                return HttpResponse::InternalServerError().finish(); // Redis connection error
+            }
+        };
 
-        // Establish Redis connection
-        let mut redis_conn: redis::Connection = redis_con().await;
         let emailotp = "otp-".to_string() + &req_body.email;
-        // Try to get the current OTP session from Redis
 
-        let session_result: RediSession = match   redis::cmd("GET")
-            .arg(&emailotp)
-            .query::<String>(&mut redis_conn){
-            Ok(sessionreddis) =>  match serde_json::from_str(&sessionreddis) {
-                Ok(sessionreddis) => sessionreddis,
-                Err(e) => return HttpResponse::InternalServerError().body(e.to_string()),
-            },
+
+        let session_result:RediSession = match redis_conn.get(&emailotp){
+            Ok(s) => s,
             Err(_)=>{
                 RediSession {
                     otp: otpstr.clone(),
-                    count: 0,
+                    count: 1,
                 }
             }
         };
-        if(session_result.count>5){
+        if session_result.count>5{
             return HttpResponse::TooManyRequests().body("Too many requests!");
         }
-        let optvalue = RediSession {
+        let otpvalue = RediSession {
             otp: otpstr.clone(),
             count: session_result.count+1,
         };
 
-        let serialized_session = serde_json::to_string(&optvalue).unwrap_or("".to_string());
 
-        match redis::cmd("SETEX")
-            .arg(&emailotp)
-            .arg(300)
-            .arg(serialized_session)
-            .query::<()>(&mut redis_conn){
+        match redis_conn.set_ex::<&String, &RediSession, u64>(&emailotp, &otpvalue,60*5){
             Ok(_)=>{},
             Err(_)=>return HttpResponse::InternalServerError().finish(),
         }

@@ -2,7 +2,9 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use backend::routes::auth::auth::routes_auth;
 use std::env;
 use dotenv::dotenv;
-use backend::service::mail::Mail::mail;
+use backend::connection::dbconection::db_conection::{redis_con, RDB};
+use backend::middleware::logmiddlware::loginmiddlware::log;
+use actix_web::middleware::{self, Next};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -13,16 +15,24 @@ async fn main() -> std::io::Result<()> {
         .parse()
         .expect("PORT must be a valid u16 integer");
 
-    println!("Starting server at http://0.0.0.0:{}", port);
-
+        println!("Starting server at http://0.0.0.0:{}", port);
+    unsafe {
+        let rdb = redis_con().await.unwrap_or_else(|e|{panic!("redis not conected")});
+        let mut rdb_lock = RDB.lock().unwrap();
+        *rdb_lock = Ok(rdb);
+        println!("Redis Conected Successfully!");
+    };
     HttpServer::new(|| {
         App::new()
             .service(
-                web::scope("/api").service(routes_auth())
+                web::scope("/api")
+                    .service(routes_auth())
+                    .wrap(actix_web::middleware::from_fn(log))
             )
             .route("/",web::get().to(home))
         })
         .bind(("0.0.0.0", port))?
+
         .workers(6)
         .run()
         .await

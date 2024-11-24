@@ -1,8 +1,15 @@
 pub mod db_conection {
     use std::env;
+    use std::sync::Mutex;
     use dotenv::dotenv;
+    use lazy_static::lazy_static;
+    use redis::{Client, RedisError};
     use sea_orm::{Database, DatabaseConnection, DbErr};
-    pub async  fn db_conection() -> Result<DatabaseConnection,DbErr> {
+
+    lazy_static! {
+    pub static ref RDB: Mutex<Result<redis::Connection, bool>> = Mutex::new(Err(false));
+}
+    pub async  fn db_connection() -> Result<DatabaseConnection,DbErr> {
         dotenv().ok();
         let  conn_string:String  = env::var("DATABASE_URL")
             .unwrap_or("".to_string());
@@ -11,20 +18,14 @@ pub mod db_conection {
         println!("Database connection established");
         Ok(db)
     }
-    pub async  fn redis_con()->redis::Connection{
+
+    pub async  fn redis_con()->Result<redis::Connection,RedisError>{
         dotenv().ok();
         let  redis_conn_url:String  = env::var("REDIS_URL")
             .unwrap_or(String::from(""));
-        let client = redis::Client::open(redis_conn_url)
-            .expect("Redis connection failed to open")
-        .get_connection()
-        .expect("Redis connection failed to connect");
-            ;
-
-
-        println!("Redis connection established");
-         client
-
+        let client =  Client::open(redis_conn_url)?;
+        client.get_connection()
     }
+
 
 }
