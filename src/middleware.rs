@@ -1,3 +1,3 @@
 pub mod logmiddlware;
-pub mod authmiddleware;
+pub mod user_auth_middleware;
 pub mod db_conn_middleware;

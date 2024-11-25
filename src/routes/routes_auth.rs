@@ -1,4 +1,4 @@
-pub mod auth{
+pub mod routes_auth{
     use actix_web::{web};
     use crate::service::auth::auth_forgot::auth_forgot::auth_forgot;
     use crate::service::auth::auth_login::auth_login::auth_login;
