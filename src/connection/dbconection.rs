@@ -68,12 +68,9 @@ pub mod db_conection {
     }
     pub async  fn redis_con()->Result<redis::Connection,RedisError>{
         dotenv().ok();
-
         let  redis_conn_url:String  = env::var("REDIS_URL")
             .unwrap_or(String::from(""));
-
         let client =  Client::open(redis_conn_url)?;
-
         client.get_connection()
     }
 

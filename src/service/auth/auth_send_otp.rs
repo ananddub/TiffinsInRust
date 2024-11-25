@@ -27,7 +27,7 @@ pub mod auth_send_otp {
     #[derive(Serialize, Deserialize,FromRedisValue, ToRedisArgs, Debug)]
     pub struct RedisOtp {
         pub otp: String,
-        count: u8,
+        pub count: u8,
     }
 
     pub async fn auth_send_otp(req_body: Json<SendOtp>) -> impl Responder {

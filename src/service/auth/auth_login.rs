@@ -8,10 +8,13 @@ pub mod auth_login {
     use serde::{Deserialize, Serialize};
     use std::time::SystemTime;
     use chrono::{Duration, Utc};
+    use rand::Rng;
     use validator::Validate;
     use entity::users::Model;
-    use crate::connection::dbconection::db_conection::{ db_connection };
+    use crate::connection::dbconection::db_conection::{db_connection, RDB};
     use crate::model::users::users::{UserModel, UserModelToken};
+    use crate::service::auth::auth_send_otp::auth_send_otp::RedisOtp;
+    use crate::service::mail::Mail::{mail, otp_html};
 
     #[derive(Deserialize, Serialize, Debug, Validate)]
     pub struct LoginBody {
@@ -81,6 +84,41 @@ pub mod auth_login {
             access_token: access_token::<UserModelToken>(&atok),
             refresh_token: refresh_token::<UserModelToken>(&rtok),
         };
+        if userdata.verified == false{
+            fn generate_otp() -> String {
+                (0..6)
+                    .map(|_| rand::thread_rng().gen_range(0..10).to_string())
+                    .collect::<String>()
+            }
+            let otpvalue = RedisOtp {
+                otp: generate_otp(),
+                count: 0,
+            };
+            let emailotp = format!("otp-{}",req_body.email);
+            let strvalue = serde_json::to_string(&otpvalue).unwrap_or(String::new());
+            let mut rdb_lock = match RDB.lock() {
+                Ok(rdb_lock) => rdb_lock,
+                Err(_) => return HttpResponse::InternalServerError().body("Failed to acquire Redis lock"),
+            };
+
+            let mut rdb_conn = match *rdb_lock {
+                Ok(ref mut rdb) => rdb,
+                Err(e) => {
+                    println!("Redis lock error: {}", e.to_string());
+                    return HttpResponse::InternalServerError().body("Failed to get Redis connection");
+                }
+            };
+            match redis::cmd("SETEX").arg(emailotp).arg(60*5).arg(strvalue).query::<()>(rdb_conn) {
+                Ok(_)=>{},
+                Err(e)=>return HttpResponse::InternalServerError().body(
+                    format!("Could not set OTP {}",e.to_string())),
+            }
+            // Send OTP email
+            match mail(&req_body.email, &otp_html(&otpvalue.otp, &req_body.email)).await {
+                Ok(_) => {},
+                Err(e) =>  return HttpResponse::InternalServerError().body(format!("Failed to send OTP email {} ",e.to_string())),
+            };
+        }
         HttpResponse::Ok().json(serde_json::json!(token))
     }
 
