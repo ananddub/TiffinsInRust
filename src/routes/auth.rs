@@ -14,6 +14,6 @@ pub mod auth{
             .route("/logout",web::post().to(auth_logout))
             .route("/forgot",web::post().to(auth_forgot))
             .route("/send_otp",web::post().to(auth_send_otp))
-            .route("/auth_verify_otp",web::post().to(auth_verify_otp))
+            .route("/verify_otp",web::post().to(auth_verify_otp))
     }
 }

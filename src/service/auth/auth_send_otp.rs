@@ -25,8 +25,8 @@ pub mod auth_send_otp {
     }
 
     #[derive(Serialize, Deserialize,FromRedisValue, ToRedisArgs, Debug)]
-    pub struct RediSession {
-        otp: String,
+    pub struct RedisOtp {
+        pub otp: String,
         count: u8,
     }
 
@@ -81,19 +81,19 @@ pub mod auth_send_otp {
             }
         };
         let emailotp = "otp-".to_string() + &req_body.email;
-        let session_result:RediSession = match redis_conn.get(&emailotp){
+        let session_result: RedisOtp = match redis_conn.get(&emailotp){
             Ok(s) => s,
             Err(_)=>{
-                RediSession {
+                RedisOtp {
                     otp: otpstr.clone(),
                     count: 1,
                 }
             }
         };
-        if session_result.count>5{
+        if session_result.count>=5{
             return HttpResponse::TooManyRequests().body("Too many requests!");
         }
-        let otpvalue = RediSession {
+        let otpvalue = RedisOtp {
             otp: otpstr.clone(),
             count: session_result.count+1,
         };
