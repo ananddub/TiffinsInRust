@@ -48,7 +48,11 @@ pub mod auth_send_otp {
             filter(users::Column::Email.eq(&req_body.email))
             .one(&db).await {
             Ok(e) => match e {
-                Some(_) => {}
+                Some(e) => {
+                    if e.verified == true {
+                        return HttpResponse::AlreadyReported().body("already verified")
+                    }
+                }
                 _ => return HttpResponse::NotFound().finish(),
             }
             Err(e) => {
