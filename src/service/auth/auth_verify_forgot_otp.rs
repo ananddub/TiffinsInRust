@@ -22,7 +22,7 @@ pub mod auth_verify_forgot_otp {
         pub password: String,
     }
 
-    pub async fn auth_forgot_send_otp(req_body: web::Json<ForgotOtpVerriyStruct>) -> impl Responder {
+    pub async fn auth_forgot_verify_otp(req_body: web::Json<ForgotOtpVerriyStruct>) -> impl Responder {
         match req_body.validate() {
             Ok(_) => (),
             Err(e) => return HttpResponse::BadRequest().body(format!("Validation error: {}", e.to_string())),
