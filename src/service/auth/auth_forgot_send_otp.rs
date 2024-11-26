@@ -1,4 +1,4 @@
-pub mod auth_send_otp {
+pub mod auth_forgot_send_otp {
     use crate::service::mail::Mail::{mail, otp_html};
     use crate::service::token::token_service::{ TokenStruct};
     use actix_web::web::Json;
@@ -30,7 +30,7 @@ pub mod auth_send_otp {
         pub count: u8,
     }
 
-    pub async fn auth_send_otp(req_body: Json<SendOtp>) -> impl Responder {
+    pub async fn auth_forgot_send(req_body: Json<SendOtp>) -> impl Responder {
         match req_body.validate() {
             Ok(_) => (),
             Err(e) => return HttpResponse::BadRequest().body(e.to_string()),
@@ -84,7 +84,7 @@ pub mod auth_send_otp {
                 return HttpResponse::InternalServerError().finish(); // Redis connection error
             }
         };
-        let emailotp = "otp-".to_string() + &req_body.email;
+        let emailotp = "forgot-otp-".to_string() + &req_body.email;
         let session_result: RedisOtp = match redis_conn.get(&emailotp){
             Ok(s) => s,
             Err(_)=>{

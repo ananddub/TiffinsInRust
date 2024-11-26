@@ -2,7 +2,7 @@ pub mod token_service{
     use std::env;
     use dotenv::dotenv;
     use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
-    use serde::{Deserialize, Serialize};
+    use serde::{Deserialize, Deserializer, Serialize};
     use chrono::{Utc, Duration, DateTime};
     use serde::de::DeserializeOwned;
 
@@ -12,50 +12,45 @@ pub mod token_service{
         pub exp: DateTime<Utc>,
     }
 
-    pub fn access_token<T: Serialize>(token:&T ) ->TokenStruct{
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Claims <T>{
+        pub sub:T, // Subject (e.g., user ID)
+        pub exp: usize, // Expiration time (as a timestamp)
+    }
+
+    pub fn access_token<T: Serialize>(token:&T) ->String{
         dotenv().ok();
         let secret_key = env::var("JWT_SECRETKEY").unwrap_or("".to_string());
-        let token =  match encode(
-            &Header::default(),
-            &token,
-            &EncodingKey::from_secret(secret_key.as_bytes())
-        ){
-            Ok(token_data) => token_data,
-            Err(_) => "".to_string()
-        };
         let days = Utc::now() + Duration::days(7);
-        TokenStruct{
-            token:token,
-            exp: days,
-        }
-    }
-    pub fn refresh_token<T: Serialize>(token:&T ) ->TokenStruct{
-        dotenv().ok();
-        let secret_key = env::var("JWT_SECRETKEY").unwrap_or("".to_string());
-        let token =  match encode(
+        let token = encode(
             &Header::default(),
             &token,
             &EncodingKey::from_secret(secret_key.as_bytes())
-        ){
-            Ok(token_data) => token_data,
-            Err(_) => "".to_string()
-        };
-        let days = Utc::now() + Duration::days(30);
-        TokenStruct{
-            token:token,
-            exp: days,
-        }
+        ).unwrap_or_else(|_| "".to_string());
+        token
     }
-    pub fn token_decoder<T:DeserializeOwned>(token:&str)->Result<TokenData<T>,String>{
+    pub fn refresh_token<T: Serialize>(token:&T ) ->String{
         dotenv().ok();
         let secret_key = env::var("JWT_SECRETKEY").unwrap_or("".to_string());
-        match decode(
+        let token = encode(
+            &Header::default(),
+            &token,
+            &EncodingKey::from_secret(secret_key.as_bytes())
+        ).unwrap_or_else(|_| "".to_string());
+
+         token
+    }
+    pub fn token_decoder<T:DeserializeOwned>(token:&str)->Result<T,String>{
+        dotenv().ok();
+        let secret_key = env::var("JWT_SECRETKEY").unwrap_or("".to_string());
+        println!("token:{:?}",&token[0..4]);
+        match decode::<T>(
             &token,
             &DecodingKey::from_secret(secret_key.as_bytes()),
             &Validation::default()
         ){
-            Ok(token_data) => Ok(token_data),
-            Err(_) => Err("Unable To Decode Token".to_string())
+            Ok(token_data) => Ok(token_data.claims),
+            Err(e) => Err(format!("Unable To Decode Token {e}"))
         }
 
     }
