@@ -33,3 +33,4 @@ lettre = "0.10"
 thiserror = "2.0.3"
 redis = { version = "0.27.5", features = ["tls"] }
 redis-macros = "0.4.2"
+actix-ratelimit = "0.3.1"
