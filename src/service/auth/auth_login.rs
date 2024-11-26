@@ -10,9 +10,8 @@ pub mod auth_login {
     use chrono::{Duration, Utc};
     use rand::Rng;
     use validator::Validate;
-    use entity::users::Model;
     use crate::connection::dbconection::db_conection::{db_connection, RDB};
-    use crate::model::users::users::{UserModel, UserModelToken};
+    use crate::model::users::users::{ UserModelToken};
     use crate::service::auth::auth_send_otp::auth_send_otp::RedisOtp;
     use crate::service::mail::Mail::{mail, otp_html};
 
