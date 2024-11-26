@@ -1,5 +1,5 @@
 pub mod auth_forgot_send_otp {
-    use crate::service::mail::Mail::{mail, otp_html};
+    use crate::service::mail::Mail::{forgot_password_html, mail, otp_html};
     use crate::service::token::token_service::{ TokenStruct};
     use actix_web::web::Json;
     use actix_web::{HttpResponse, Responder};
@@ -109,7 +109,7 @@ pub mod auth_forgot_send_otp {
                 format!("Could not set OTP {}",e.to_string())),
         }
         // Send OTP email
-        match mail(&req_body.email, &otp_html(&otpstr, &req_body.email)).await {
+        match mail(&req_body.email, &forgot_password_html(&otpstr, &req_body.email)).await {
             Ok(_) => HttpResponse::Ok().body("Success!"),
             Err(e) =>  HttpResponse::InternalServerError().body(format!("Failed to send OTP email {} ",e.to_string())),
         }

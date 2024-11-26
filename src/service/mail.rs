@@ -176,4 +176,114 @@ pub mod Mail{
 </body>
         "#)
     }
+
+    pub fn forgot_password_html(otp: &str, email: &str) -> String {
+        format!(
+            r#"
+<head>
+    <title>Password Reset Request</title>
+    <style>
+        body {{
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #fdfbfb, #ebedee);
+            color: #333;
+            line-height: 1.8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }}
+
+        .container {{
+            width: 100%;
+            max-width: 450px;
+            margin: auto;
+            padding: 20px 25px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }}
+
+        h1 {{
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #d32f2f;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }}
+
+        p {{
+            margin-bottom: 20px;
+            text-align: center;
+            color: #555;
+            font-size: 16px;
+        }}
+
+        .code-container {{
+            text-align: center;
+            margin: 20px 0;
+        }}
+
+        .code {{
+            background: #fbe9e7;
+            color: #d84315;
+            padding: 15px 30px;
+            border-radius: 8px;
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-size: 26px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }}
+
+        .code:hover {{
+            transform: scale(1.05);
+        }}
+
+        .footer {{
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-top: 25px;
+        }}
+
+        .footer a {{
+            color: #d84315;
+            text-decoration: none;
+            font-weight: bold;
+        }}
+
+        .footer a:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Password Reset Request</h1>
+        <p>
+            We received a request to reset the password for the account associated with <b>{email}</b>.
+        </p>
+        <p><b>Use the code below to reset your password. This code is valid for the next 10 minutes.</b></p>
+
+        <div class="code-container">
+            <span class="code">{otp}</span>
+        </div>
+
+        <p>If you didn’t request this, you can safely ignore this email.</p>
+
+        <div class="footer">
+            <p><b>Cheers,</b></p>
+            <p><b>The Support Team</b></p>
+            <p><b>Need help? Visit our <a href="https://yourwebsite.com/support">Support Page</a>.</b></p>
+        </div>
+    </div>
+</body>
+        "#
+        )
+    }
 }
