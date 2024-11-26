@@ -9,6 +9,7 @@ pub mod loginmiddlware {
     let routes = req.path().clone().to_string();
     let res = next.call(req).await?;
         let elapsed = now.elapsed();
+        println!("");
         println!(
             "[LOG] Route: '{}', Time Elapsed: {} ms",
             routes,
