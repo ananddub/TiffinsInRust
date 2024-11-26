@@ -4,7 +4,7 @@ use validator::Validate;
 pub mod auth_jwt_genrator{
     use actix_web::{HttpResponse, Responder};
     use chrono::{Duration, Utc};
-    use sea_orm::EntityTrait;
+    use sea_orm::{ ColumnTrait, EntityTrait, QueryFilter};
     use serde::Deserialize;
     use entity::users;
     use crate::connection::dbconection::db_conection::db_connection;
@@ -28,7 +28,7 @@ pub mod auth_jwt_genrator{
             Ok(t)=>t,
             Err(e)=>{
                 println!("{:?}", e);
-                return HttpResponse::InternalServerError()
+                return HttpResponse::InternalServerError().finish()
             }
         };
         let mut userdata = match users::Entity::find()
@@ -51,7 +51,7 @@ pub mod auth_jwt_genrator{
             username: userdata.username.clone(),
             exp :(Utc::now() + Duration::days(7)).timestamp() as usize
         };
-        HttpResponse::Ok().body(access_token(atok))
+        HttpResponse::Ok().body(access_token(&atok))
     }
     pub async fn auth_refresh_token(req_body:actix_web::web::Json<JwtToken>)->impl Responder{
         let db=match db_connection().await {
@@ -65,7 +65,7 @@ pub mod auth_jwt_genrator{
             Ok(t)=>t,
             Err(e)=>{
                 println!("{:?}", e);
-                return HttpResponse::InternalServerError()
+                return HttpResponse::InternalServerError().finish()
             }
         };
         let mut userdata = match users::Entity::find()
@@ -88,6 +88,6 @@ pub mod auth_jwt_genrator{
             username: userdata.username.clone(),
             exp :(Utc::now() + Duration::days(30)).timestamp() as usize
         };
-        HttpResponse::Ok().body(refresh_token(atok))
+        HttpResponse::Ok().body(refresh_token(&atok))
     }
 }
