@@ -1,6 +1,6 @@
 pub mod routes_auth{
     use actix_web::{web};
-    use crate::service::auth::auth_forgot::auth_forgot::auth_forgot;
+    use crate::service::auth::auth_verify_forgot_otp::auth_forgot::auth_forgot;
     use crate::service::auth::auth_login::auth_login::auth_login;
     use crate::service::auth::auth_logout::auth_logout::auth_logout;
     use crate::service::auth::auth_send_otp::auth_send_otp::auth_send_otp;
@@ -15,5 +15,7 @@ pub mod routes_auth{
             .route("/forgot",web::post().to(auth_forgot))
             .route("/send_otp",web::post().to(auth_send_otp))
             .route("/verify_otp",web::post().to(auth_verify_otp))
+            .route("/fogot_verify_send_otp",web::post().to(auth_verify_otp))
+            .route("/forgot_verify_otp",web::post().to(auth_verify_otp))
     }
 }
