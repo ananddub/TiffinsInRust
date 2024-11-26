@@ -18,7 +18,7 @@ pub mod routes_auth{
             .route("/verify_otp",web::post().to(auth_verify_otp))
             .route("/forgot_send",web::post().to(auth_forgot_send))
             .route("/forgot_verify",web::post().to(auth_forgot_verify_otp))
-            .route("/accestoken",web::post().to(auth_access_token))
+            .route("/acesstoken",web::post().to(auth_access_token))
             .route("/refreshtoken",web::post().to(auth_refresh_token))
     }
 }

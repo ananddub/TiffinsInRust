@@ -28,7 +28,7 @@ pub mod auth_jwt_genrator{
             Ok(t)=>t,
             Err(e)=>{
                 println!("{:?}", e);
-                return HttpResponse::InternalServerError().finish()
+                return HttpResponse::BadGateway().finish()
             }
         };
         let mut userdata = match users::Entity::find()

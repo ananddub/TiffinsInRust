@@ -21,7 +21,6 @@ pub mod auth_verify_forgot_otp {
         #[validate(length(min = 6, max = 36))]
         pub password: String,
     }
-
     pub async fn auth_forgot_verify_otp(req_body: web::Json<ForgotOtpVerriyStruct>) -> impl Responder {
         match req_body.validate() {
             Ok(_) => (),
