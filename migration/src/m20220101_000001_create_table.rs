@@ -16,6 +16,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Users::Id))
                     .col(string(Users::Image))
                     .col(string(Users::Email))
+                    .col(string(Users::Mob))
                     .col(string(Users::Role))
                     .col(boolean(Users::Verified))
                     .col(string(Users::Password))
@@ -41,6 +42,7 @@ enum Users {
     Id,
     Image,
     Email,
+    Mob,
     Username,
     Password,
     Role,

@@ -26,6 +26,8 @@ pub mod auth_signup{
         pub password: String,
         #[validate(email)] // Email validation
         pub email: String,
+        #[validate(length(min = 10, max = 10))] // Password length validation
+        pub mob:String
     }
 
     #[derive(Deserialize, Serialize, Debug, Validate)]
@@ -82,6 +84,7 @@ pub mod auth_signup{
             image: Set(image),
             username: Set(req_body.username.clone()),
             email: Set(req_body.email.clone()),
+            mob:Set(req_body.mob.clone()),
             role: Set("user".to_string()),
             verified: Set(false),
             password: Set(hashed_password),
