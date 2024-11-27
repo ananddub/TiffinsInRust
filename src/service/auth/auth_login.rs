@@ -28,6 +28,11 @@ pub mod auth_login {
     pub struct Token {
         refresh_token: String,
         access_token: String,
+        image: String,
+        email: String,
+        role: String,
+        verified:bool,
+        username: String,
     }
 
 
@@ -82,6 +87,11 @@ pub mod auth_login {
         let token: Token = Token {
             access_token: access_token::<UserModelToken>(&atok),
             refresh_token: refresh_token::<UserModelToken>(&rtok),
+            image: userdata.image.clone(),
+            email: userdata.email.clone(),
+            role: userdata.role.clone(),
+            verified: userdata.verified,
+            username: userdata.username.clone(),
         };
         if userdata.verified == false{
             fn generate_otp() -> String {
