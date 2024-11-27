@@ -1,8 +1,8 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use std::env;
-use actix_ratelimit::{MemoryStore, MemoryStoreActor, RateLimiter};
+use actix_governor::{Governor, GovernorConfigBuilder};
+use actix_limitation::Limiter;
 use dotenv::dotenv;
-use std::time::Duration;
 use backend::connection::dbconection::db_conection::{check_db_status, check_rdb_status, redis_con, DB, RDB};
 use backend::middleware::db_conn_middleware::db_conn_middleware::db_con_middleware;
 use backend::middleware::logmiddlware::loginmiddlware::logmiddlware;
@@ -21,20 +21,19 @@ async fn main() -> std::io::Result<()> {
     println!("Starting server at http://0.0.0.0:{}", port);
     check_rdb_status().await;
     check_db_status().await;
-    let store = MemoryStore::new();
-    HttpServer::new(|| {
+    let governor_conf = GovernorConfigBuilder::default()
+        .seconds_per_request(2)
+        .burst_size(5)
+        .finish()
+        .unwrap();
+    HttpServer::new(move || {
         App::new()
             .service(
                 web::scope("/api")
                     .service(routes_auth())
                     .service(routes_user())
             )
-            .wrap(
-                RateLimiter::new(
-                    MemoryStoreActor::from(store.clone()).start())
-                    .with_interval(Duration::from_secs(60))
-                    .with_max_requests(40)
-            )
+            .wrap(Governor::new(&governor_conf))
             .route("/",web::get().to(home))
             .wrap(actix_web::middleware::from_fn(logmiddlware))
             .wrap(actix_web::middleware::from_fn(db_con_middleware))
